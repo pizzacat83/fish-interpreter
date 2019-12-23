@@ -85,6 +85,26 @@ lo~/
 		source:
 `1&0[2&]&n;`,
 		expectedOutput: "1"
+	},
+	{
+		initialStack: [],
+		input: [],
+		source:
+`  v    <
+1v>  0!
+ >n;`,
+		expectedOutput: "0"
+	},
+	{
+		initialStack: [],
+		input: [],
+		source:
+`0   v
+    !
+
+    1
+    >n;`,
+		expectedOutput: "1"
 	}
 ];
 

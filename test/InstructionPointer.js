@@ -78,7 +78,7 @@ describe("Changing direction", function () {
 
 	it("should fail when given something else", function () {
 		[1, {}, [], -8, "Blah"].forEach((thing) => {
-			expect(() => ip.changeDirection(thing)).to.throw;
+			expect(() => ip.changeDirection(thing)).to.throw();
 		});
 	});
 });
@@ -109,7 +109,7 @@ describe("Moving an instruction pointer", function () {
 	describe("Teleporting outside the program grid", function () {
 		it("should throw in all cases", function () {
 			invalidTeleportPoints.forEach(([x, y]) => {
-				expect(() => ip.teleport(x, y)).to.throw;
+				expect(() => ip.teleport(x, y)).to.throw();
 			});
 		});
 	});
@@ -202,6 +202,160 @@ describe("Moving an instruction pointer", function () {
 			ip.advance();
 
 			expect(ip.x).to.equal(9);
+		});
+	});
+});
+
+describe("Moving in a bumpy grid", function () {
+	// Create the fish program
+	const bumpySource = [' '.repeat(4), ' '.repeat(3), ' '.repeat(5)].join('\n');
+	const program = new FishProgram(bumpySource);
+	const validTeleportPoints = [
+		[0, 0],
+		[4, 0],
+		[0, 1],
+		[4, 1],
+		[4, 2],
+		[0, 2]
+	];
+	
+	const invalidTeleportPoints = [
+		[-100, 8565],
+		[57, -1],
+		[-60, -2],
+		[54, 92],
+		[5, 42],
+		[42, 5],
+		[6, 0],
+		[6, 1],
+		[6, 2]
+	];
+
+	// Shorthand for the instruction pointer
+	const ip = program.instructionPointer;
+
+	it("should start at x = -1, y = 0", function () {
+		expect(ip.x).to.equal(-1);
+		expect(ip.y).to.equal(0);
+	});
+
+	describe("Teleporting within the program grid", function () {
+		it("should be able to teleport around on the program grid", function () {
+			validTeleportPoints.forEach(([x, y]) => {
+				ip.teleport(x, y);
+
+				expect(ip.x).to.equal(x);
+				expect(ip.y).to.equal(y);
+			});
+		});
+	});
+
+	describe("Teleporting outside the program grid", function () {
+		it("should throw in all cases", function () {
+			invalidTeleportPoints.forEach(([x, y]) => {
+				expect(() => ip.teleport(x, y)).to.throw();
+			});
+		});
+	});
+
+	describe("Moving around by advancing", function () {
+		it("should now be placed at (5, 5)", function () {
+			ip.teleport(1, 1);
+
+			expect(ip.x).to.equal(1);
+			expect(ip.y).to.equal(1);
+		});
+
+		it("should move eastward by default", function () {
+			expect(ip.direction).to.equal(InstructionPointer.DIRECTION_EAST);
+		});
+
+		it("should be possible to turn it north and move that direction", function () {
+			ip.changeDirection(InstructionPointer.DIRECTION_NORTH);
+
+			ip.advance();
+
+			expect(ip.x).to.equal(1);
+			expect(ip.y).to.equal(0);
+		});
+
+		it("should be possible to turn it east and move that direction", function () {
+			ip.changeDirection(InstructionPointer.DIRECTION_EAST);
+
+			ip.advance();
+
+			expect(ip.x).to.equal(2);
+			expect(ip.y).to.equal(0);
+		});
+
+		it("should be possible to turn it south and move that direction", function () {
+			ip.changeDirection(InstructionPointer.DIRECTION_SOUTH);
+
+			ip.advance();
+
+			expect(ip.x).to.equal(2);
+			expect(ip.y).to.equal(1);
+		});
+
+		it("should be possible to turn it west and move that direction", function () {
+			ip.changeDirection(InstructionPointer.DIRECTION_WEST);
+
+			ip.advance();
+
+			expect(ip.x).to.equal(1);
+			expect(ip.y).to.equal(1);
+		});
+
+		it("should move 1 cell down into empty instruction", function () {
+			ip.teleport(3, 0);
+			ip.changeDirection(InstructionPointer.DIRECTION_SOUTH);
+
+			ip.advance();
+
+			expect(ip.x).to.equal(3);
+			expect(ip.y).to.equal(1);
+		});
+	});
+
+	describe("Advancing past the program grid's edges", function () {
+		it("should wrap around to the bottom if advancing past the top", function () {
+			ip.teleport(0, 0);
+
+			ip.changeDirection(InstructionPointer.DIRECTION_NORTH);
+
+			ip.advance();
+
+			expect(ip.y).to.equal(2);
+		});
+
+		it("should wrap around to the top if advancing past the bottom", function () {
+			ip.teleport(0, 2);
+
+			ip.changeDirection(InstructionPointer.DIRECTION_SOUTH);
+
+			ip.advance();
+
+			expect(ip.y).to.equal(0);
+		});
+
+		it("should wrap around to the left if advancing past the right", function () {
+			ip.teleport(3, 0);
+
+			ip.changeDirection(InstructionPointer.DIRECTION_EAST);
+
+			ip.advance();
+
+			expect(ip.x).to.equal(0);
+		});
+
+		it("should wrap around to the right if advancing past the left", function () {
+			ip.teleport(0, 0);
+
+			ip.changeDirection(InstructionPointer.DIRECTION_WEST);
+
+			ip.advance();
+
+			expect(ip.x).to.equal(3);
 		});
 	});
 });
